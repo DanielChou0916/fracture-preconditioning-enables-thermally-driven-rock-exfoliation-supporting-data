@@ -21,11 +21,6 @@ Simulations were performed using:
 
 Please cite the archived DOI of this repository (see “Citation” below) when referencing these materials.
 
-**Version information**
-- Felino version / commit: `[fill in commit hash or release tag]`
-- MOOSE version / commit: `[fill in commit hash or release tag]`
-- Operating system / environment notes (optional): `[e.g., Ubuntu 22.04, conda env, etc.]`
-
 ---
 
 ## Repository structure
