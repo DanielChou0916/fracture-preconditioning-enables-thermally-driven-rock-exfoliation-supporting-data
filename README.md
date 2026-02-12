@@ -27,7 +27,6 @@ Please cite the archived DOI of this repository (see “Citation” below) when 
 
 - `inputs/`  
   MOOSE/Felino input files (`.i`) used to generate the simulations in the paper.  
-  Each case folder corresponds to a figure or table in the manuscript.
 
 - `CSV/`  
   Derived datasets in CSV format (e.g., extracted field values, curves, and summary quantities) used for plotting and analysis.
