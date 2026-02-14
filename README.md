@@ -45,7 +45,7 @@ The table below indicates which manuscript items can be reproduced **directly fr
 | Fig. 10   | `inputs/...` | `CSV/No*.csv` | `Python_notebooks/2_load_csv.ipynb` |
 | Fig. 8(b) | `inputs/...` | `CSV/col*.csv` | `Python_notebooks/2_load_csv.ipynb` |
 
-Other figures in the manuscript are **field-variable visualizations** (e.g., contour plots) that are generated from full simulation outputs. These full outputs are not archived due to size, but can be regenerated using the workflow described below.
+Other figures in the manuscript are **field-variable visualizations** (e.g., contour plots) that are generated from full simulation outputs. These full outputs are not archived due to size, but can be regenerated using the workflow described below. The relevant notebook file is `Python_notebooks/0_read_outputs_BC_and_ICs.ipynb`.
 
 ---
 
