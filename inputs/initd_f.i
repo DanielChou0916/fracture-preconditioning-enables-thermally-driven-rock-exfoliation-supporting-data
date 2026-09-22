@@ -72,11 +72,11 @@ b = 1.0
     type = ParsedFunction
     expression = 'if(atan2(y,x) >= 0.0,
     if(atan2(y,x) <= 1.5707963267948966,
-      gc0 * (1 - 0.95 * (tanh((sqrt(x^2/1.5^2 + y^2/1.0^2) - 0.97)/0.002) - tanh((sqrt(x^2/1.5^2 + y^2/1.0^2) - 0.985)/0.002)) / 2),
+      gc0 * (1 - 0.95 * (tanh((sqrt(x^2/a^2 + y^2/b^2) - 0.97)/0.002) - tanh((sqrt(x^2/1.5^2 + y^2/1.0^2) - 0.985)/0.002)) / 2),
       gc0),
     gc0)'
-    symbol_names = 'gc0'
-    symbol_values = '${gc}'
+    symbol_names = 'gc0 a b'
+    symbol_values = '${gc} ${a} ${b}'
   [../]
   [./d_multi_sector]
     type = ParsedFunction
