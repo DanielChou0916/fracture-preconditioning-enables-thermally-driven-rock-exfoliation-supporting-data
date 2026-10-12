@@ -3,7 +3,7 @@ E = 8.5e4 #MPa
 nu = 0.28
 
 # Phase field parameters
-gc=4.5e-4#MPa m
+gc = 1.5e-4
 l = 0.01 # m
 sig_t0=40 #MPa
 
@@ -16,7 +16,7 @@ a = 4.0
 b = 1.0
 
 [Mesh]
-  file = "../dome_mesh/dome0513.inp"
+  file = "../../dome_mesh/dome2.inp"
   uniform_refine = 0
   skip_partitioning = true
   construct_side_list_from_node_list=true
@@ -26,12 +26,13 @@ b = 1.0
   displacements = 'disp_x disp_y'
 []
 
-[Actions/ADNonconserved]
+[Actions/PFNonconserved]
   [./d]
     free_energy = F
     kappa = kappa_op
     mobility = L
     variable_mobility=false
+    use_automatic_differentiation = true
     scaling = 1e-2
   [../]
 []
@@ -68,15 +69,21 @@ b = 1.0
       symbol_names = 'eigen_max'
       symbol_values = '${eigen_strain_value}'
   []
-  [./multiple_gc_defects]
+  [./radial_gc_reduction]
+
     type = ParsedFunction
-    expression = 'if(atan2(y,x) >= 0.0,
-    if(atan2(y,x) <= 1.5707963267948966,
-      gc0 * (1 - 0.95 * (tanh((sqrt(x^2/a^2 + y^2/b^2) - 0.97)/0.002) - tanh((sqrt(x^2/a^2 + y^2/b^2) - 0.985)/0.002)) / 2),
-      gc0),
-    gc0)'
+
+    expression = '
+      gc0 * (
+        1.0
+        - (2.0/3.0) * sqrt(x^2/a^2 + y^2/b^2)
+      )
+    '
+
     symbol_names = 'gc0 a b'
+
     symbol_values = '${gc} ${a} ${b}'
+
   [../]
   [./d_multi_sector]
     type = ParsedFunction
@@ -86,26 +93,34 @@ b = 1.0
       0),
     0)'
   [../]
+  [./d_multi_sector_abs_depth]
+    type = ParsedFunction
+    expression = 'if(atan2(y,x) >= 0.0,
+    if(atan2(y,x) <= 1.5707963267948966,
+      (tanh((-(x^2/4.0^2 + y^2/1.0^2 - 1)/sqrt((2*x/4.0^2)^2 + (2*y/1.0^2)^2 + 1e-12) - 0.025)/0.002) - tanh((-(x^2/4.0^2 + y^2/1.0^2 - 1)/sqrt((2*x/4.0^2)^2 + (2*y/1.0^2)^2 + 1e-12) - 0.03)/0.002)) / 2,
+      0),
+    0)'
+  [../]
 []
 
 [ICs]
-  #[d_ic] #Tangential defects
-  #  type = FunctionIC
-  #  variable = d
-  #  function = d_multi_sector
-  #[]
-  [init_d_box]
-    type = MultiRotBoundingBoxIC
+  [d_ic] #Tangential defects
+    type = FunctionIC
     variable = d
-    cx = '3.985 3.909 3.770 3.570 3.313 3.002 2.643 2.242 1.805 1.338 0.850 0.349'
-    cy = '0.087 0.213 0.335 0.451 0.561 0.661 0.751 0.828 0.892 0.942 0.977 0.996'
-    lx = '0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15'
-    ly = '0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01'
-    angle_z = '199.3 221.0 234.8 243.7 249.7 254.1 257.6 260.4 262.8 264.9 266.9 268.7'
-    inside = '1 1 1 1 1 1 1 1 1 1 1 1'
-    outside = '0 0 0 0 0 0 0 0 0 0 0 0'
-    int_width = '0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001'
-  [../]
+    function = d_multi_sector_abs_depth
+  []
+  #[init_d_box]
+  #  type = MultiRotBoundingBoxIC
+  #  variable = d
+  #  cx = '3.985 3.909 3.770 3.570 3.313 3.002 2.643 2.242 1.805 1.338 0.850 0.349'
+  #  cy = '0.087 0.213 0.335 0.451 0.561 0.661 0.751 0.828 0.892 0.942 0.977 0.996'
+  #  lx = '0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15'
+  #  ly = '0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01'
+  #  angle_z = '199.3 221.0 234.8 243.7 249.7 254.1 257.6 260.4 262.8 264.9 266.9 268.7'
+  #  inside = '1 1 1 1 1 1 1 1 1 1 1 1'
+  #  outside = '0 0 0 0 0 0 0 0 0 0 0 0'
+  #  int_width = '0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001'
+  #[../]
 []
 
 
@@ -115,7 +130,7 @@ b = 1.0
   [./shrink_function]
     type = ADGenericFunctionMaterial
     prop_names = 'prestrain'
-    prop_values = 'eigen_strain_prefactor'  
+    prop_values = 'eigen_strain_prefactor'   # shrink_func 是你在 [Functions] 中定義的
   [../]
   [./eigen]
     type = ADComputeEigenstrain
@@ -147,12 +162,11 @@ b = 1.0
   [../]
   [gc]
     type = ADGenericFunctionMaterial
-    #type = ADGenericConstantMaterial
     prop_names = 'gc'
     prop_values = '${gc}'
-    #prop_values = single_gc_defect
-    #prop_values = multiple_gc_defects
-  [] 
+    #prop_values = radial_gc_reduction
+    #outputs = exodus
+  []
   [./public_materials_forPF_model]
     type = ADGenericConstantMaterial
     prop_names =  ' l      xi  C0         L  ' # density k0=(2650 ,   3.1) are not used here, so do not included them
@@ -182,7 +196,6 @@ b = 1.0
     D_name = degradation 
     Ce_name = Ce
     #model = 'asymptotic'
-    output_Ce_aux= false
   []
   [./local_fracture_energy] #Define psi_frac and alpha(d)
     type = ADDerivativeParsedMaterial
@@ -199,11 +212,10 @@ b = 1.0
     expression = '2 * gc * l / C0'
   [../]
   [./cracked_stress] #Sigma=\partial E_el/\partial strain
-    type = ADGeoLinearElasticPFFractureStress
+    type = ADLinearElasticPFFractureStress
     c = d
     E_name = E_el
     D_name = degradation 
-    F_name = local_fracture_energy
     decomposition_type = none 
     use_current_history_variable = true
     use_snes_vi_solver = true
@@ -251,7 +263,8 @@ b = 1.0
   petsc_options_iname = '-pc_type -snes_type'
   petsc_options_value = 'lu vinewtonrsls'
   automatic_scaling = true
-  nl_max_its = 40
+  compute_scaling_once=false
+  nl_max_its = 80
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-7
 []

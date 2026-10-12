@@ -4,7 +4,7 @@ nu = 0.28
 gravity = -9.81e-6
 
 # Phase field parameters
-gc=4.5e-4#MPa m
+gc = 1.5e-4
 l = 0.01 # m
 sig_t0=40 #MPa
 
@@ -24,7 +24,7 @@ a = 4.0
 b = 1.0
 
 [Mesh]
-  file = "../dome_mesh/dome0513.inp"
+  file = "../../dome_mesh/dome2.inp"
   uniform_refine = 0
   skip_partitioning = true
   construct_side_list_from_node_list=true
@@ -125,7 +125,7 @@ b = 1.0
   [./set_stress_free]
     type = FunctionAux
     variable = stressfree
-    function = radial_initial_temperature #initial_temperature
+    function = radial_initial_temperature_field #initial_temperature
     execute_on = 'initial'
   [../]
 []
@@ -133,26 +133,26 @@ b = 1.0
 [ICs]
   [./initial_temp_ic]
     type = FunctionIC
-    function = radial_initial_temperature #initial_temperature  # Reference to the function defined above
+    function = radial_initial_temperature_field #initial_temperature  # Reference to the function defined above
     variable = T
   [../]
-  #[d_ic] #Tangential defects
-  #  type = FunctionIC
-  #  variable = d
-  #  function = d_multi_sector
-  #[]
-  [init_d_box]
-    type = MultiRotBoundingBoxIC
+  [d_ic] #Tangential defects
+    type = FunctionIC
     variable = d
-    cx = '3.985 3.909 3.770 3.570 3.313 3.002 2.643 2.242 1.805 1.338 0.850 0.349'
-    cy = '0.087 0.213 0.335 0.451 0.561 0.661 0.751 0.828 0.892 0.942 0.977 0.996'
-    lx = '0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15'
-    ly = '0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01'
-    angle_z = '199.3 221.0 234.8 243.7 249.7 254.1 257.6 260.4 262.8 264.9 266.9 268.7'
-    inside = '1 1 1 1 1 1 1 1 1 1 1 1'
-    outside = '0 0 0 0 0 0 0 0 0 0 0 0'
-    int_width = '0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001'
-  [../]
+    function = d_multi_sector_abs_depth
+  []
+  #[init_d_box]
+  #  type = MultiRotBoundingBoxIC
+  #  variable = d
+  #  cx = '3.985 3.909 3.770 3.570 3.313 3.002 2.643 2.242 1.805 1.338 0.850 0.349'
+  #  cy = '0.087 0.213 0.335 0.451 0.561 0.661 0.751 0.828 0.892 0.942 0.977 0.996'
+  #  lx = '0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15 0.15'
+  #  ly = '0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01'
+  #  angle_z = '199.3 221.0 234.8 243.7 249.7 254.1 257.6 260.4 262.8 264.9 266.9 268.7'
+  #  inside = '1 1 1 1 1 1 1 1 1 1 1 1'
+  #  outside = '0 0 0 0 0 0 0 0 0 0 0 0'
+  #  int_width = '0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001'
+  #[../]
 []
 
 [Physics/SolidMechanics/QuasiStatic]
@@ -210,27 +210,80 @@ b = 1.0
     symbol_names = 'a b'
     symbol_values = '${a} ${b}'
   [../]
+
+  [./radial_initial_temperature_field]
+    type = ParsedFunction
+
+    expression = '
+      if(
+        sqrt(x^2/a^2 + y^2/b^2) < 0.15,
+        33.733,
+
+        if(
+          sqrt(x^2/a^2 + y^2/b^2) < 0.25,
+          33.733
+          + (34.514 - 33.733)/(0.25 - 0.15)
+          * (sqrt(x^2/a^2 + y^2/b^2) - 0.15),
+
+          if(
+            sqrt(x^2/a^2 + y^2/b^2) < 0.75,
+            34.514
+            + (38.249 - 34.514)/(0.75 - 0.25)
+            * (sqrt(x^2/a^2 + y^2/b^2) - 0.25),
+
+            if(
+              sqrt(x^2/a^2 + y^2/b^2) < 0.87,
+              38.249
+              + (37.423 - 38.249)/(0.87 - 0.75)
+              * (sqrt(x^2/a^2 + y^2/b^2) - 0.75),
+
+              37.423
+              + (33.5 - 37.423)/(1.0 - 0.87)
+              * (sqrt(x^2/a^2 + y^2/b^2) - 0.87)
+            )
+          )
+        )
+      )
+    '
+
+    symbol_names = 'a b'
+    symbol_values = '${a} ${b}'
+  [../]
   [eigen_strain_prefactor]
       type = ParsedFunction
       expression = "eigen_max*y"
       symbol_names = 'eigen_max'
       symbol_values = '${eigen_strain_value}'
     []
-  [./multiple_gc_defects]
+  [./radial_gc_reduction]
+
     type = ParsedFunction
-    expression = 'if(atan2(y,x) >= 0.0,
-    if(atan2(y,x) <= 1.5707963267948966,
-      gc0 * (1 - 0.95 * (tanh((sqrt(x^2/a^2 + y^2/b^2) - 0.97)/0.002) - tanh((sqrt(x^2/a^2 + y^2/b^2) - 0.985)/0.002)) / 2),
-      gc0),
-    gc0)'
+
+    expression = '
+      gc0 * (
+        1.0
+        - (2.0/3.0) * sqrt(x^2/a^2 + y^2/b^2)
+      )
+    '
+
     symbol_names = 'gc0 a b'
+
     symbol_values = '${gc} ${a} ${b}'
+
   [../]
   [./d_multi_sector]
     type = ParsedFunction
     expression = 'if(atan2(y,x) >= 0.0,
     if(atan2(y,x) <= 1.5707963267948966,
       (tanh((sqrt(x^2/4.0^2 + y^2/1.0^2) - 0.97)/0.002) - tanh((sqrt(x^2/4.0^2 + y^2/1.0^2) - 0.975)/0.002)) / 2,
+      0),
+    0)'
+  [../]
+  [./d_multi_sector_abs_depth]
+    type = ParsedFunction
+    expression = 'if(atan2(y,x) >= 0.0,
+    if(atan2(y,x) <= 1.5707963267948966,
+      (tanh((-(x^2/4.0^2 + y^2/1.0^2 - 1)/sqrt((2*x/4.0^2)^2 + (2*y/1.0^2)^2 + 1e-12) - 0.025)/0.002) - tanh((-(x^2/4.0^2 + y^2/1.0^2 - 1)/sqrt((2*x/4.0^2)^2 + (2*y/1.0^2)^2 + 1e-12) - 0.03)/0.002)) / 2,
       0),
     0)'
   [../]
@@ -288,11 +341,9 @@ b = 1.0
   []
   [gc]
     type = ADGenericFunctionMaterial
-    #type = ADGenericConstantMaterial
     prop_names = 'gc'
     prop_values = '${gc}'
-    #prop_values = single_gc_defect
-    #prop_values = multiple_gc_defects
+    #prop_values = radial_gc_reduction
     outputs = exodus
   []
   [./public_materials_forPF_model]
@@ -318,7 +369,6 @@ b = 1.0
     type = ADComputeExtraDrivingForce
     D_name = degradation 
     Ce_name = Ce
-    output_Ce_aux= true
   []
   #[./local_fracture_energy] #Define psi_frac and alpha(d)
   #  type = ADDerivativeParsedMaterial
@@ -335,11 +385,10 @@ b = 1.0
   #  expression = '2 * gc * l / C0'
   #[../]
   [./cracked_stress] #Sigma=\partial E_el/\partial strain
-    type = ADGeoLinearElasticPFFractureStress
+    type = ADLinearElasticPFFractureStress
     c = d
     E_name = E_el
     D_name = degradation 
-    F_name = local_fracture_energy
     decomposition_type = none 
     use_current_history_variable = true
     use_snes_vi_solver = true
@@ -403,11 +452,12 @@ b = 1.0
 
   [./TimeStepper]
     type = IterationAdaptiveDT
-    dt = 1e-1
+    dt = 5e-1
     optimal_iterations = 12
     cutback_factor = 0.3 
     growth_factor = 1.25
   [../]
+  dtmin = 1e-6
   #num_steps = 1 #for debug only
   end_time = ${end_time}
   fixed_point_max_its = 15
@@ -421,9 +471,9 @@ b = 1.0
 #  show_var_residual_norms = true
 #[]
 [Outputs]
-  file_base=No4_inid_vert12_2
+  file_base=the9
   exodus = true
   #perf_graph = true
   csv = true
-  time_step_interval =3
+  time_step_interval =5
 []

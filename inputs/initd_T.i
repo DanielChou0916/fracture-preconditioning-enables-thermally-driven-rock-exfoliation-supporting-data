@@ -9,7 +9,7 @@ a = 4.0
 b = 1.0
 
 [Mesh]
-  file = "../dome_mesh/dome0513.inp"
+  file = "../../dome_mesh/dome2.inp"
   uniform_refine = 0
   skip_partitioning = true
   construct_side_list_from_node_list=true
@@ -25,7 +25,7 @@ b = 1.0
 [ICs]
   [./initial_temp_ic]
     type = FunctionIC
-    function = radial_initial_temperature#initial_temperature  # Reference to the function defined above
+    function = radial_initial_temperature_field#initial_temperature  # Reference to the function defined above
     variable = T
   [../]
 []
@@ -69,6 +69,45 @@ b = 1.0
                 37.423 + (33.5 - 37.423)/(1.0 - 0.87)*(y - 0.87)
       )))) * (x^2/a^2 + y^2/b^2)
     )'
+    symbol_names = 'a b'
+    symbol_values = '${a} ${b}'
+  [../]
+
+  [./radial_initial_temperature_field]
+    type = ParsedFunction
+
+    expression = '
+      if(
+        sqrt(x^2/a^2 + y^2/b^2) < 0.15,
+        33.733,
+
+        if(
+          sqrt(x^2/a^2 + y^2/b^2) < 0.25,
+          33.733
+          + (34.514 - 33.733)/(0.25 - 0.15)
+          * (sqrt(x^2/a^2 + y^2/b^2) - 0.15),
+
+          if(
+            sqrt(x^2/a^2 + y^2/b^2) < 0.75,
+            34.514
+            + (38.249 - 34.514)/(0.75 - 0.25)
+            * (sqrt(x^2/a^2 + y^2/b^2) - 0.25),
+
+            if(
+              sqrt(x^2/a^2 + y^2/b^2) < 0.87,
+              38.249
+              + (37.423 - 38.249)/(0.87 - 0.75)
+              * (sqrt(x^2/a^2 + y^2/b^2) - 0.75),
+
+              37.423
+              + (33.5 - 37.423)/(1.0 - 0.87)
+              * (sqrt(x^2/a^2 + y^2/b^2) - 0.87)
+            )
+          )
+        )
+      )
+    '
+
     symbol_names = 'a b'
     symbol_values = '${a} ${b}'
   [../]
