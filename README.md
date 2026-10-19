@@ -2,7 +2,7 @@
 
 This repository contains the input files and selected derived datasets supporting key results and conclusions in the manuscript:
 
-**"[Paper title here]"** (to be updated upon publication).
+**"Fracture preconditioning enables thermally driven rock exfoliation: A FEM study"**.
 
 It includes:
 - MOOSE/Felino input files used to run the simulations reported in the paper
@@ -73,6 +73,6 @@ Large intermediate simulation outputs (e.g., full-field/time-history outputs and
 
 If you use this repository, please cite it as:
 
-> Chou, D. (YEAR). Data and inputs for: *[Paper title]* (Version X.Y) [Data set]. **Zenodo**. DOI: `10.5281/zenodo.XXXXXXX`
+> Chou, D. (2026). Data and inputs for: *Fracture preconditioning enables thermally driven rock exfoliation: A FEM study*. **Zenodo**. DOI: `10.5281/zenodo.XXXXXXX`
 
 (The DOI and citation will be updated after archival publication.)
