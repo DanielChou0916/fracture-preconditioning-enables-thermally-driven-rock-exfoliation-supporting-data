@@ -73,6 +73,6 @@ Large intermediate simulation outputs (e.g., full-field/time-history outputs and
 
 If you use this repository, please cite it as:
 
-> Chou, D. (2026). Data and inputs for: *Fracture preconditioning enables thermally driven rock exfoliation: A FEM study*. **Zenodo**. DOI: `10.5281/zenodo.XXXXXXX`
+> Chou, D. (2026). Data and inputs for: *Fracture preconditioning enables thermally driven rock exfoliation: A FEM study*. **Zenodo**. DOI: `10.5281/zenodo.23475821`
 
 (The DOI and citation will be updated after archival publication.)
